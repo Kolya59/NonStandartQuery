@@ -9,51 +9,58 @@
 //------------------------------------------------------------------------------
 
 namespace NonStandartQuery.Properties {
-    
-    
-    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.8.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
-        
-        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-        
-        public static Settings Default {
+    using System.CodeDom.Compiler;
+    using System.Configuration;
+    using System.Diagnostics;
+    using System.Runtime.CompilerServices;
+
+    [CompilerGenerated()]
+    [GeneratedCode("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.8.0.0")]
+    internal sealed partial class Settings : ApplicationSettingsBase {
+
+        private static Settings defaultInstance =
+            ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
+
+        public static NonStandartQuery.Properties.Settings Default {
             get {
                 return defaultInstance;
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(".")]
+        [UserScopedSetting()]
+        [DebuggerNonUserCode()]
+        [DefaultSettingValue(".")]
         public string DataSource {
             get {
                 return ((string)(this["DataSource"]));
             }
+
             set {
                 this["DataSource"] = value;
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("adhoc")]
+        [UserScopedSetting()]
+        [DebuggerNonUserCode()]
+        [DefaultSettingValue("adhoc")]
         public string InitialCatalog {
             get {
                 return ((string)(this["InitialCatalog"]));
             }
+
             set {
                 this["InitialCatalog"] = value;
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("true")]
+        [UserScopedSetting()]
+        [DebuggerNonUserCode()]
+        [DefaultSettingValue("true")]
         public string IntegratedSecurity {
             get {
                 return ((string)(this["IntegratedSecurity"]));
             }
+
             set {
                 this["IntegratedSecurity"] = value;
             }

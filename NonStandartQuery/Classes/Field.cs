@@ -21,7 +21,7 @@
 
         public string CategoryName { get; }
 
-        private string Name { get; }
+        public string Name { get; }
 
         public static bool operator ==(Field left, Field right)
         {
@@ -35,16 +35,16 @@
 
         public string GetFullName() => @"[" + TableName + "].[" + Name + "]";
 
-        public override bool Equals(object column)
+        public override bool Equals(object field)
         {
             try
             {
-                return Name == ((Field)column).Name && DisplayedName == ((Field)column).DisplayedName && Type == ((Field)column).Type &&
-                       TableName == ((Field)column).TableName;
+                return Name == ((Field)field).Name && DisplayedName == ((Field)field).DisplayedName && Type == ((Field)field).Type &&
+                       TableName == ((Field)field).TableName;
             }
             catch (InvalidCastException)
             {
-                return DisplayedName == (string)column;
+                return DisplayedName == (string)field;
             }
         }
 

@@ -1,11 +1,16 @@
 ﻿namespace NonStandartQuery
 {
+    using System;
+    using System.ComponentModel;
+    using System.Drawing;
+    using System.Windows.Forms;
+
     partial class FormMain
     {
         /// <summary>
         /// Обязательная переменная конструктора.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Освободить все используемые ресурсы.
@@ -17,6 +22,7 @@
             {
                 components.Dispose();
             }
+
             base.Dispose(disposing);
         }
 
@@ -35,20 +41,25 @@
             this.btDelete = new System.Windows.Forms.Button();
             this.btAdd = new System.Windows.Forms.Button();
             this.lvSelectedFields = new System.Windows.Forms.ListView();
+            this.columnSelectedFields = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lvAllFields = new System.Windows.Forms.ListView();
+            this.columnAllFields = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tpConditions = new System.Windows.Forms.TabPage();
             this.dgvConditions = new System.Windows.Forms.DataGridView();
             this.tpOrder = new System.Windows.Forms.TabPage();
-            this.cbOrder = new System.Windows.Forms.ComboBox();
-            this.label13 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
+            this.btUp = new System.Windows.Forms.Button();
+            this.btDown = new System.Windows.Forms.Button();
+            this.btDesc = new System.Windows.Forms.Button();
+            this.btAsc = new System.Windows.Forms.Button();
             this.btDeleteAllFromSort = new System.Windows.Forms.Button();
             this.btAddAllToSort = new System.Windows.Forms.Button();
             this.btDeleteFromSort = new System.Windows.Forms.Button();
             this.btAddToSort = new System.Windows.Forms.Button();
             this.lvSelectedFieldsToSort = new System.Windows.Forms.ListView();
+            this.columnField = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnOrder = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lvAllFieldsToSort = new System.Windows.Forms.ListView();
+            this.columnAllFieldsToSort = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tpResult = new System.Windows.Forms.TabPage();
             this.dgvResult = new System.Windows.Forms.DataGridView();
             this.btExecute = new System.Windows.Forms.Button();
@@ -137,19 +148,36 @@
             // 
             // lvSelectedFields
             // 
-            this.lvSelectedFields.Location = new System.Drawing.Point(424, 24);
+            this.lvSelectedFields.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnSelectedFields});
+            this.lvSelectedFields.Location = new System.Drawing.Point(424, 20);
             this.lvSelectedFields.Name = "lvSelectedFields";
-            this.lvSelectedFields.Size = new System.Drawing.Size(365, 334);
+            this.lvSelectedFields.Size = new System.Drawing.Size(365, 345);
             this.lvSelectedFields.TabIndex = 11;
             this.lvSelectedFields.UseCompatibleStateImageBehavior = false;
+            this.lvSelectedFields.View = System.Windows.Forms.View.Details;
+            // 
+            // columnSelectedFields
+            // 
+            this.columnSelectedFields.Text = "Выбранные поля";
+            this.columnSelectedFields.Width = 365;
             // 
             // lvAllFields
             // 
-            this.lvAllFields.Location = new System.Drawing.Point(7, 24);
+            this.lvAllFields.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnAllFields});
+            this.lvAllFields.FullRowSelect = true;
+            this.lvAllFields.Location = new System.Drawing.Point(3, 20);
             this.lvAllFields.Name = "lvAllFields";
-            this.lvAllFields.Size = new System.Drawing.Size(365, 334);
+            this.lvAllFields.Size = new System.Drawing.Size(365, 345);
             this.lvAllFields.TabIndex = 10;
             this.lvAllFields.UseCompatibleStateImageBehavior = false;
+            this.lvAllFields.View = System.Windows.Forms.View.Details;
+            // 
+            // columnAllFields
+            // 
+            this.columnAllFields.Text = "Все поля";
+            this.columnAllFields.Width = 360;
             // 
             // tpConditions
             // 
@@ -174,10 +202,10 @@
             // 
             // tpOrder
             // 
-            this.tpOrder.Controls.Add(this.cbOrder);
-            this.tpOrder.Controls.Add(this.label13);
-            this.tpOrder.Controls.Add(this.label11);
-            this.tpOrder.Controls.Add(this.label12);
+            this.tpOrder.Controls.Add(this.btUp);
+            this.tpOrder.Controls.Add(this.btDown);
+            this.tpOrder.Controls.Add(this.btDesc);
+            this.tpOrder.Controls.Add(this.btAsc);
             this.tpOrder.Controls.Add(this.btDeleteAllFromSort);
             this.tpOrder.Controls.Add(this.btAddAllToSort);
             this.tpOrder.Controls.Add(this.btDeleteFromSort);
@@ -191,45 +219,53 @@
             this.tpOrder.Text = "Порядок";
             this.tpOrder.UseVisualStyleBackColor = true;
             // 
-            // cbOrder
+            // btUp
             // 
-            this.cbOrder.FormattingEnabled = true;
-            this.cbOrder.Location = new System.Drawing.Point(344, 339);
-            this.cbOrder.Name = "cbOrder";
-            this.cbOrder.Size = new System.Drawing.Size(121, 21);
-            this.cbOrder.TabIndex = 17;
-            this.cbOrder.SelectedIndexChanged += new System.EventHandler(this.CbOrderSelectedIndexChanged);
+            this.btUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.btUp.Location = new System.Drawing.Point(379, 290);
+            this.btUp.Name = "btUp";
+            this.btUp.Size = new System.Drawing.Size(40, 40);
+            this.btUp.TabIndex = 25;
+            this.btUp.Text = "↑";
+            this.btUp.UseVisualStyleBackColor = true;
+            this.btUp.Click += new System.EventHandler(this.BtUpClick);
             // 
-            // label13
+            // btDown
             // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(269, 342);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(51, 13);
-            this.label13.TabIndex = 16;
-            this.label13.Text = "Порядок";
+            this.btDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.btDown.Location = new System.Drawing.Point(379, 334);
+            this.btDown.Name = "btDown";
+            this.btDown.Size = new System.Drawing.Size(40, 40);
+            this.btDown.TabIndex = 24;
+            this.btDown.Text = "↓";
+            this.btDown.UseVisualStyleBackColor = true;
+            this.btDown.Click += new System.EventHandler(this.BtDownClick);
             // 
-            // label11
+            // btDesc
             // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(566, 25);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(93, 13);
-            this.label11.TabIndex = 15;
-            this.label11.Text = "Выбранные поля";
+            this.btDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.btDesc.Location = new System.Drawing.Point(379, 244);
+            this.btDesc.Name = "btDesc";
+            this.btDesc.Size = new System.Drawing.Size(40, 40);
+            this.btDesc.TabIndex = 23;
+            this.btDesc.Text = "-";
+            this.btDesc.UseVisualStyleBackColor = true;
+            this.btDesc.Click += new System.EventHandler(this.BtDescClick);
             // 
-            // label12
+            // btAsc
             // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(163, 25);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(53, 13);
-            this.label12.TabIndex = 14;
-            this.label12.Text = "Все поля";
+            this.btAsc.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.btAsc.Location = new System.Drawing.Point(379, 198);
+            this.btAsc.Name = "btAsc";
+            this.btAsc.Size = new System.Drawing.Size(40, 40);
+            this.btAsc.TabIndex = 22;
+            this.btAsc.Text = "+";
+            this.btAsc.UseVisualStyleBackColor = true;
+            this.btAsc.Click += new System.EventHandler(this.BtAscClick);
             // 
             // btDeleteAllFromSort
             // 
-            this.btDeleteAllFromSort.Location = new System.Drawing.Point(379, 240);
+            this.btDeleteAllFromSort.Location = new System.Drawing.Point(379, 152);
             this.btDeleteAllFromSort.Name = "btDeleteAllFromSort";
             this.btDeleteAllFromSort.Size = new System.Drawing.Size(40, 40);
             this.btDeleteAllFromSort.TabIndex = 11;
@@ -239,7 +275,7 @@
             // 
             // btAddAllToSort
             // 
-            this.btAddAllToSort.Location = new System.Drawing.Point(379, 194);
+            this.btAddAllToSort.Location = new System.Drawing.Point(379, 106);
             this.btAddAllToSort.Name = "btAddAllToSort";
             this.btAddAllToSort.Size = new System.Drawing.Size(40, 40);
             this.btAddAllToSort.TabIndex = 10;
@@ -249,7 +285,7 @@
             // 
             // btDeleteFromSort
             // 
-            this.btDeleteFromSort.Location = new System.Drawing.Point(379, 148);
+            this.btDeleteFromSort.Location = new System.Drawing.Point(379, 60);
             this.btDeleteFromSort.Name = "btDeleteFromSort";
             this.btDeleteFromSort.Size = new System.Drawing.Size(40, 40);
             this.btDeleteFromSort.TabIndex = 9;
@@ -259,7 +295,7 @@
             // 
             // btAddToSort
             // 
-            this.btAddToSort.Location = new System.Drawing.Point(379, 102);
+            this.btAddToSort.Location = new System.Drawing.Point(379, 14);
             this.btAddToSort.Name = "btAddToSort";
             this.btAddToSort.Size = new System.Drawing.Size(40, 40);
             this.btAddToSort.TabIndex = 8;
@@ -269,19 +305,43 @@
             // 
             // lvSelectedFieldsToSort
             // 
-            this.lvSelectedFieldsToSort.Location = new System.Drawing.Point(425, 50);
+            this.lvSelectedFieldsToSort.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnField,
+            this.columnOrder});
+            this.lvSelectedFieldsToSort.Location = new System.Drawing.Point(425, 20);
             this.lvSelectedFieldsToSort.Name = "lvSelectedFieldsToSort";
-            this.lvSelectedFieldsToSort.Size = new System.Drawing.Size(363, 273);
+            this.lvSelectedFieldsToSort.ShowGroups = false;
+            this.lvSelectedFieldsToSort.Size = new System.Drawing.Size(363, 345);
             this.lvSelectedFieldsToSort.TabIndex = 21;
             this.lvSelectedFieldsToSort.UseCompatibleStateImageBehavior = false;
+            this.lvSelectedFieldsToSort.View = System.Windows.Forms.View.Details;
+            // 
+            // columnField
+            // 
+            this.columnField.Text = "Выбранные поля";
+            this.columnField.Width = 250;
+            // 
+            // columnOrder
+            // 
+            this.columnOrder.Text = "Направление";
+            this.columnOrder.Width = 110;
             // 
             // lvAllFieldsToSort
             // 
-            this.lvAllFieldsToSort.Location = new System.Drawing.Point(10, 50);
+            this.lvAllFieldsToSort.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnAllFieldsToSort});
+            this.lvAllFieldsToSort.FullRowSelect = true;
+            this.lvAllFieldsToSort.Location = new System.Drawing.Point(10, 20);
             this.lvAllFieldsToSort.Name = "lvAllFieldsToSort";
-            this.lvAllFieldsToSort.Size = new System.Drawing.Size(363, 273);
+            this.lvAllFieldsToSort.Size = new System.Drawing.Size(363, 345);
             this.lvAllFieldsToSort.TabIndex = 20;
             this.lvAllFieldsToSort.UseCompatibleStateImageBehavior = false;
+            this.lvAllFieldsToSort.View = System.Windows.Forms.View.Details;
+            // 
+            // columnAllFieldsToSort
+            // 
+            this.columnAllFieldsToSort.Text = "Все поля";
+            this.columnAllFieldsToSort.Width = 358;
             // 
             // tpResult
             // 
@@ -297,9 +357,10 @@
             // 
             this.dgvResult.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvResult.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvResult.Location = new System.Drawing.Point(9, 4);
+            this.dgvResult.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvResult.Location = new System.Drawing.Point(0, 0);
             this.dgvResult.Name = "dgvResult";
-            this.dgvResult.Size = new System.Drawing.Size(775, 366);
+            this.dgvResult.Size = new System.Drawing.Size(795, 383);
             this.dgvResult.TabIndex = 0;
             // 
             // btExecute
@@ -359,7 +420,6 @@
             this.tpConditions.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvConditions)).EndInit();
             this.tpOrder.ResumeLayout(false);
-            this.tpOrder.PerformLayout();
             this.tpResult.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvResult)).EndInit();
             this.ResumeLayout(false);
@@ -368,33 +428,38 @@
 
         #endregion
 
-        private System.Windows.Forms.TabControl tcNonStandartQuery;
-        private System.Windows.Forms.TabPage tpFields;
-        private System.Windows.Forms.TabPage tpConditions;
-        private System.Windows.Forms.Button btDeleteAll;
-        private System.Windows.Forms.Button btAddAll;
-        private System.Windows.Forms.Button btDelete;
-        private System.Windows.Forms.Button btAdd;
-        private System.Windows.Forms.TabPage tpOrder;
-        private System.Windows.Forms.TabPage tpResult;
-        private System.Windows.Forms.Button btExecute;
-        private System.Windows.Forms.Button btShowSQLQuery;
-        private System.Windows.Forms.Button btCancel;
-        private System.Windows.Forms.Button btChangeConnection;
-        private System.Windows.Forms.ComboBox cbOrder;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Button btDeleteAllFromSort;
-        private System.Windows.Forms.Button btAddAllToSort;
-        private System.Windows.Forms.Button btDeleteFromSort;
-        private System.Windows.Forms.Button btAddToSort;
-        private System.Windows.Forms.DataGridView dgvResult;
-        private System.Windows.Forms.DataGridView dgvConditions;
-        private System.Windows.Forms.ListView lvSelectedFields;
-        private System.Windows.Forms.ListView lvAllFields;
-        private System.Windows.Forms.ListView lvSelectedFieldsToSort;
-        private System.Windows.Forms.ListView lvAllFieldsToSort;
+        private TabControl tcNonStandartQuery;
+        private TabPage tpConditions;
+        private TabPage tpResult;
+        private Button btExecute;
+        private Button btShowSQLQuery;
+        private Button btCancel;
+        private Button btChangeConnection;
+        private DataGridView dgvResult;
+        private DataGridView dgvConditions;
+        private TabPage tpFields;
+        private Button btDeleteAll;
+        private Button btAddAll;
+        private Button btDelete;
+        private Button btAdd;
+        private ListView lvSelectedFields;
+        private ColumnHeader columnSelectedFields;
+        private ListView lvAllFields;
+        private ColumnHeader columnAllFields;
+        private TabPage tpOrder;
+        private Button btAsc;
+        private Button btDeleteAllFromSort;
+        private Button btAddAllToSort;
+        private Button btDeleteFromSort;
+        private Button btAddToSort;
+        private ListView lvSelectedFieldsToSort;
+        private ColumnHeader columnField;
+        private ColumnHeader columnOrder;
+        private ListView lvAllFieldsToSort;
+        private ColumnHeader columnAllFieldsToSort;
+        private Button btUp;
+        private Button btDown;
+        private Button btDesc;
     }
 }
 

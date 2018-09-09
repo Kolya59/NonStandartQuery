@@ -1,14 +1,112 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace NonStandartQuery.Classes
+﻿namespace NonStandartQuery.Classes
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     internal class SqlType : IEquatable<SqlType>
     {
-        private string Name { get; }
-
-        private Type AnalogType { get; }
+        private static readonly Dictionary<string, Type> CollectionOfTypesMatching = new Dictionary<string, Type>
+                                                                                         {
+                                                                                             { "bigint", typeof(long) },
+                                                                                             {
+                                                                                                 "numeric",
+                                                                                                 typeof(decimal)
+                                                                                             },
+                                                                                             { "bit", typeof(bool) },
+                                                                                             {
+                                                                                                 "smallint",
+                                                                                                 typeof(short)
+                                                                                             },
+                                                                                             {
+                                                                                                 "decimal",
+                                                                                                 typeof(decimal)
+                                                                                             },
+                                                                                             {
+                                                                                                 "smallmoney",
+                                                                                                 typeof(decimal)
+                                                                                             },
+                                                                                             {
+                                                                                                 "int",
+                                                                                                 typeof(int)
+                                                                                             },
+                                                                                             {
+                                                                                                 "tinyint",
+                                                                                                 typeof(byte)
+                                                                                             },
+                                                                                             {
+                                                                                                 "money",
+                                                                                                 typeof(decimal)
+                                                                                             },
+                                                                                             {
+                                                                                                 "float",
+                                                                                                 typeof(double)
+                                                                                             },
+                                                                                             {
+                                                                                                 "real",
+                                                                                                 typeof(float)
+                                                                                             },
+                                                                                             {
+                                                                                                 "date",
+                                                                                                 typeof(DateTime)
+                                                                                             },
+                                                                                             {
+                                                                                                 "datetimeoffset",
+                                                                                                 typeof(DateTimeOffset)
+                                                                                             },
+                                                                                             {
+                                                                                                 "datetime2",
+                                                                                                 typeof(DateTime)
+                                                                                             },
+                                                                                             {
+                                                                                                 "smalldatetime",
+                                                                                                 typeof(DateTime)
+                                                                                             },
+                                                                                             {
+                                                                                                 "datetime",
+                                                                                                 typeof(DateTime)
+                                                                                             },
+                                                                                             {
+                                                                                                 "time",
+                                                                                                 typeof(TimeSpan)
+                                                                                             },
+                                                                                             {
+                                                                                                 "char",
+                                                                                                 typeof(string)
+                                                                                             },
+                                                                                             {
+                                                                                                 "varchar",
+                                                                                                 typeof(string)
+                                                                                             },
+                                                                                             {
+                                                                                                 "text",
+                                                                                                 typeof(string)
+                                                                                             },
+                                                                                             {
+                                                                                                 "nchar",
+                                                                                                 typeof(string)
+                                                                                             },
+                                                                                             {
+                                                                                                 "nvarchar",
+                                                                                                 typeof(string)
+                                                                                             },
+                                                                                             {
+                                                                                                 "ntext",
+                                                                                                 typeof(string)
+                                                                                             },
+                                                                                             {
+                                                                                                 "binary",
+                                                                                                 typeof(byte[])
+                                                                                             },
+                                                                                             {
+                                                                                                 "varbinary",
+                                                                                                 typeof(byte[])
+                                                                                             },
+                                                                                             {
+                                                                                                 "image",
+                                                                                                 typeof(byte[])
+                                                                                             }
+                                                                                         };
 
         public SqlType(string name)
         {
@@ -22,35 +120,9 @@ namespace NonStandartQuery.Classes
             AnalogType = GetCSharpType();
         }
 
-        private static readonly Dictionary<string, Type> CollectionOfTypesMatching = new Dictionary<string, Type>
-                                                                                         {
-                                                                                             {"bigint", typeof(long)},
-                                                                                             {"numeric", typeof(decimal)},
-                                                                                             {"bit", typeof(bool)},
-                                                                                             {"smallint", typeof(short)},
-                                                                                             {"decimal", typeof(decimal)},
-                                                                                             {"smallmoney", typeof(decimal)},
-                                                                                             {"int", typeof(int)},
-                                                                                             {"tinyint", typeof(byte)},
-                                                                                             {"money", typeof(decimal)},
-                                                                                             {"float", typeof(double)},
-                                                                                             {"real", typeof(float)},
-                                                                                             {"date", typeof(DateTime)},
-                                                                                             {"datetimeoffset", typeof(DateTimeOffset)},
-                                                                                             {"datetime2", typeof(DateTime)},
-                                                                                             {"smalldatetime", typeof(DateTime)},
-                                                                                             {"datetime", typeof(DateTime)},
-                                                                                             {"time", typeof(TimeSpan)},
-                                                                                             {"char", typeof(string)},
-                                                                                             {"varchar", typeof(string)},
-                                                                                             {"text", typeof(string)},
-                                                                                             {"nchar", typeof(string)},
-                                                                                             {"nvarchar", typeof(string)},
-                                                                                             {"ntext", typeof(string)},
-                                                                                             {"binary", typeof(byte[])},
-                                                                                             {"varbinary", typeof(byte[])},
-                                                                                             {"image", typeof(byte[])}
-                                                                                         };
+        private string Name { get; }
+
+        private Type AnalogType { get; }
 
         public static bool operator ==(SqlType type1, SqlType type2)
         {
@@ -74,8 +146,6 @@ namespace NonStandartQuery.Classes
 
         public Type GetCSharpType() => CollectionOfTypesMatching.FirstOrDefault(t => t.Key == Name).Value;
 
-        public string GetSqlType() => Name;
-
         public bool Equals(SqlType other)
         {
             if (ReferenceEquals(null, other))
@@ -87,6 +157,7 @@ namespace NonStandartQuery.Classes
             {
                 return true;
             }
+
             return string.Equals(Name, other.Name) && AnalogType == other.AnalogType;
         }
 

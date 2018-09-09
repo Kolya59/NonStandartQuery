@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace NonStandartQuery.Classes
+﻿namespace NonStandartQuery.Classes
 {
+    using System;
+    using System.Collections.Generic;
+
     internal class Condition : IEquatable<Condition>
     {
         public Condition(Field field, Criterion criterion, object expression, string bunch)

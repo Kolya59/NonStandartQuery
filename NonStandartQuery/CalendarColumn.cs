@@ -1,9 +1,8 @@
-﻿using System;
-using System.Windows.Forms;
-
-
-namespace Workstation
+﻿namespace NonStandartQuery
 {
+    using System;
+    using System.Windows.Forms;
+
     public class CalendarColumn : DataGridViewColumn
     {
         public CalendarColumn()
@@ -22,6 +21,7 @@ namespace Workstation
                 {
                     throw new InvalidCastException("Must be a CalendarCell");
                 }
+
                 base.CellTemplate = value;
             }
         }
@@ -35,14 +35,21 @@ namespace Workstation
             Style.Format = "d";
         }
 
-        public override void InitializeEditingControl(int rowIndex, object
-            initialFormattedValue, DataGridViewCellStyle dataGridViewCellStyle)
+        public override Type EditType => typeof(CalendarEditingControl);
+
+        public override Type ValueType => typeof(DateTime);
+
+        public override object DefaultNewRowValue => DateTime.Now;
+
+        public override void InitializeEditingControl(
+            int rowIndex,
+            object initialFormattedValue,
+            DataGridViewCellStyle dataGridViewCellStyle)
         {
             // Set the value of the editing control to the current cell value.
-            base.InitializeEditingControl(rowIndex, initialFormattedValue,
-                dataGridViewCellStyle);
-            var ctl =
-                DataGridView.EditingControl as CalendarEditingControl;
+            base.InitializeEditingControl(rowIndex, initialFormattedValue, dataGridViewCellStyle);
+            var ctl = DataGridView.EditingControl as CalendarEditingControl;
+
             // Use the default row value when Value property is null.
             if (Value == null)
             {
@@ -52,20 +59,17 @@ namespace Workstation
             {
                 ctl.Value = (DateTime)Value;
             }
+
+            ctl.Visible = true;
         }
-
-        public override Type EditType => typeof(CalendarEditingControl);
-
-        public override Type ValueType => typeof(DateTime);
-
-        public override object DefaultNewRowValue => DateTime.Now;
     }
 
-    class CalendarEditingControl : DateTimePicker, IDataGridViewEditingControl
+    public class CalendarEditingControl : DateTimePicker, IDataGridViewEditingControl
     {
         public CalendarEditingControl()
         {
             Format = DateTimePickerFormat.Short;
+            Visible = true;
         }
 
         // Implements the IDataGridViewEditingControl.EditingControlFormattedValue 
@@ -75,7 +79,10 @@ namespace Workstation
             get => Value.ToShortDateString();
             set
             {
-                if (!(value is String)) return;
+                if (!(value is String))
+                {
+                    return;
+                }
                 try
                 {
                     // This will throw an exception of the string is 
@@ -108,6 +115,7 @@ namespace Workstation
             Font = dataGridViewCellStyle.Font;
             CalendarForeColor = dataGridViewCellStyle.ForeColor;
             CalendarMonthBackground = dataGridViewCellStyle.BackColor;
+            Visible = true;
         }
 
         // Implements the IDataGridViewEditingControl.EditingControlRowIndex 

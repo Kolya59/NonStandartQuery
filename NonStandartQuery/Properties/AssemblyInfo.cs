@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // Общие сведения об этой сборке предоставляются следующим набором
@@ -23,12 +22,10 @@ using System.Runtime.InteropServices;
 [assembly: Guid("597b3721-2676-44ac-aa08-340efa5faec0")]
 
 // Сведения о версии сборки состоят из следующих четырех значений:
-//
 //      Основной номер версии
 //      Дополнительный номер версии
 //   Номер сборки
 //      Редакция
-//
 // Можно задать все значения или принять номер сборки и номер редакции по умолчанию.
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]

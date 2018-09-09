@@ -50,6 +50,8 @@
     <Compile Include="Classes\Condition.cs" />
     <Compile Include="Classes\Criterion.cs" />
     <Compile Include="Classes\Field.cs" />
+    <Compile Include="Classes\OrderedField.cs" />
+    <Compile Include="Classes\OrderFieldComparer.cs" />
     <Compile Include="Classes\SqlType.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
