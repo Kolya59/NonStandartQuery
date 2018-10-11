@@ -319,6 +319,15 @@ namespace NonStandartQuery
                 lvAllFieldsToSort.Groups[field.CategoryName].Items.Add(item);
                 lvAllFieldsToSort.Items.Add(item);
             }
+
+            var collection = lvSelectedFieldsToSort.Items;
+            foreach (ListViewItem item in collection)
+            {
+                if (!collectionOfSelectedFields.Exists(t => t.DisplayedName == item.Text.Substring(0, t.DisplayedName.Length)))
+                {
+                    lvSelectedFieldsToSort.Items.Remove(item);
+                }
+            }
         }
 
         private static DataGridViewCell ChooseRightCellType(Field value)
@@ -544,6 +553,12 @@ namespace NonStandartQuery
 
         private void DgvConditionsUserDeletingRows(object sender, DataGridViewRowCancelEventArgs e)
         {
+            if (e.Row.IsNewRow)
+            {
+                e.Cancel = true;
+                return;
+            }
+
             if (dgvConditions.IsCurrentRowDirty)
             {
                 return;
@@ -734,6 +749,8 @@ namespace NonStandartQuery
 
             if (collectionOfConditions.Count == 0 && joinList == null)
             {
+                collectionOfSqlParameters.Clear();
+                currentSqlQueryWherePart = string.Empty;
                 return;
             }
             
