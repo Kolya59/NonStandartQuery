@@ -3,30 +3,6 @@
     using System;
     using System.Windows.Forms;
 
-    public class CalendarColumn : DataGridViewColumn
-    {
-        public CalendarColumn()
-            : base(new CalendarCell())
-        {
-        }
-
-        public override DataGridViewCell CellTemplate
-        {
-            get => base.CellTemplate;
-            set
-            {
-                // Ensure that the cell used for the template is a CalendarCell.
-                if (value != null &&
-                    !value.GetType().IsAssignableFrom(typeof(CalendarCell)))
-                {
-                    throw new InvalidCastException("Must be a CalendarCell");
-                }
-
-                base.CellTemplate = value;
-            }
-        }
-    }
-
     public class CalendarCell : DataGridViewTextBoxCell
     {
         public CalendarCell()
@@ -39,7 +15,7 @@
 
         public override Type ValueType => typeof(DateTime);
 
-        public override object DefaultNewRowValue => DateTime.Now;
+        public override object DefaultNewRowValue => DateTime.Now.Date;
 
         public override void InitializeEditingControl(
             int rowIndex,
@@ -53,7 +29,7 @@
             // Use the default row value when Value property is null.
             if (Value == null)
             {
-                ctl.Value = (DateTime)DefaultNewRowValue;
+                ctl.Value = DateTime.Now.Date;
             }
             else
             {
@@ -79,22 +55,23 @@
             get => Value.ToShortDateString();
             set
             {
-                if (!(value is String))
+                if (!(value is string))
                 {
                     return;
                 }
+
                 try
                 {
                     // This will throw an exception of the string is 
                     // null, empty, or not in the format of a date.
-                    Value = DateTime.Parse((String)value);
+                    Value = DateTime.Parse((string)value);
                 }
                 catch
                 {
                     // In the case of an exception, just use the 
                     // default value so we're not left with a null
                     // value.
-                    Value = DateTime.Now;
+                    Value = DateTime.Now.Date;
                 }
             }
         }

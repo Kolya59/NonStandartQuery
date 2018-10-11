@@ -12,6 +12,10 @@
         public FormSetConnection(SqlConnection stableConnection)
         {
             InitializeComponent();
+            CurrentSqlConnectionStringBuilder = new SqlConnectionStringBuilder();
+            btOk.Click += BtOkClick;
+            btCancel.Click += BtCancelClick;
+            cbDataBase.SelectedIndexChanged += CbDataBaseSelectedIndexChanged;
             LastStableConnection = stableConnection;
             tbServer.Text = stableConnection.DataSource;
             IntializeCurrentServer(LastStableConnection);
@@ -82,20 +86,6 @@
             return true;
         }
 
-        private static bool CheckServer(IDbConnection sqlConnection)
-        {
-            try
-            {
-                sqlConnection.Open();
-                sqlConnection.Close();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         private static bool IsStandardDataBase(string dbName) =>
             dbName == "tempdb" || dbName == "master" || dbName == "model" || dbName == "msdb";
 
@@ -116,19 +106,33 @@
             foreach (DataRow dataBaseRow in connection.GetSchema("Databases").Rows)
             {
                 var dataBase = (string)dataBaseRow[0];
+                SqlConnection newConnection;
+                try
+                {
+                    newConnection = new SqlConnection(new SqlConnectionStringBuilder
+                                                              {
+                                                                  DataSource = CurrentSqlConnectionStringBuilder.DataSource,
+                                                                  InitialCatalog = dataBase,
+                                                                  IntegratedSecurity = true
+                                                              }.ConnectionString);
+                }
+                catch (Exception)
+                {
+                    newConnection = new SqlConnection(new SqlConnectionStringBuilder
+                                                              {
+                                                                  DataSource = LastStableConnection.DataSource,
+                                                                  InitialCatalog = dataBase,
+                                                                  IntegratedSecurity = true
+                                                              }.ConnectionString);
+                }
 
-                var newConnection = new SqlConnection(new SqlConnectionStringBuilder
-                                                          {
-                                                              DataSource = CurrentSqlConnectionStringBuilder.DataSource,
-                                                              InitialCatalog = dataBase,
-                                                              IntegratedSecurity = true
-                                                          }.ConnectionString);
                 if (!IsStandardDataBase(dataBase) && CheckDataBase(newConnection))
                 {
                     cbDataBase.Items.Add(dataBase);
                 }
             }
 
+            cbDataBase.SelectedIndex = 0;
             connection.Close();
         }
 
@@ -142,31 +146,37 @@
 
             Properties.Settings.Default.DataSource = tbServer.Text;
             Properties.Settings.Default.InitialCatalog = cbDataBase.Text;
+            Properties.Settings.Default.Save();
             DialogResult = DialogResult.OK;
         }
 
         private void CbDataBaseSelectedIndexChanged(object sender, EventArgs e)
         {
             btOk.Enabled = true;
-            CurrentSqlConnectionStringBuilder.InitialCatalog = cbDataBase.SelectedItem as string;
+            CurrentSqlConnectionStringBuilder.InitialCatalog = cbDataBase.SelectedItem.ToString();
         }
 
         private void BtCancelClick(object sender, EventArgs e) => DialogResult = DialogResult.Cancel;
 
-        private void TbServerTextChanged(object sender, EventArgs e)
+        private void BtChangeServerClick(object sender, EventArgs e)
         {
-            CurrentSqlConnectionStringBuilder = new SqlConnectionStringBuilder
-                                              {
-                                                  DataSource = tbServer.Text,
-                                                  InitialCatalog = "master",
-                                                  IntegratedSecurity = true
-                                              };
-            var connection = new SqlConnection(CurrentSqlConnectionStringBuilder.ConnectionString);
-            btOk.Enabled = CheckServer(connection);
-            if (btOk.Enabled)
+            var form = new FormSetServer { Visible = false };
+            form.ShowDialog();
+            if (form.DialogResult != DialogResult.OK)
             {
-                IntializeCurrentServer(connection);
+                return;
             }
+
+            tbServer.Text = form.CurrentServer;
+            CurrentSqlConnectionStringBuilder = new SqlConnectionStringBuilder
+                                                    {
+                                                        DataSource = form.CurrentServer,
+                                                        InitialCatalog = "master",
+                                                        IntegratedSecurity = true
+                                                    };
+            var connection = new SqlConnection(CurrentSqlConnectionStringBuilder.ConnectionString);
+            
+            IntializeCurrentServer(connection);
         }
     }
 }

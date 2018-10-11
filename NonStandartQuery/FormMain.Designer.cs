@@ -89,6 +89,7 @@
             this.tcNonStandartQuery.SelectedIndex = 0;
             this.tcNonStandartQuery.Size = new System.Drawing.Size(803, 409);
             this.tcNonStandartQuery.TabIndex = 0;
+            this.tcNonStandartQuery.SelectedIndexChanged += new System.EventHandler(this.TcNonStandartQuerySelectedIndexChanged);
             // 
             // tpFields
             // 
@@ -407,6 +408,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.btChangeConnection);
             this.Controls.Add(this.btCancel);

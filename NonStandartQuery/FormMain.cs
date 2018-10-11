@@ -21,7 +21,7 @@ namespace NonStandartQuery
 
         private readonly List<Condition> collectionOfConditions = new List<Condition>();
 
-        private readonly List<OrderedField> collectionOfSelectedFieldsToSort = new List<OrderedField>();
+        private List<OrderedField> collectionOfSelectedFieldsToSort = new List<OrderedField>();
 
         private readonly Dictionary<Tuple<string, string>, string> collectionOfAdjacentTables =
             new Dictionary<Tuple<string, string>, string>();
@@ -31,11 +31,15 @@ namespace NonStandartQuery
 
         private readonly List<Field> mainCollectionOfAllFields = new List<Field>();
 
+        private readonly List<SqlParameter> collectionOfSqlParameters = new List<SqlParameter>();
+
         private List<Field> collectionOfAllFields = new List<Field>();
 
         private List<Field> collectionOfSelectedFields = new List<Field>();
 
         private List<Field> collectionOfAllFieldsToSort = new List<Field>();
+
+        private List<string> collectionOfFieldsToConditions = new List<string>();
 
         #endregion
 
@@ -106,11 +110,11 @@ namespace NonStandartQuery
             foreach (var field in collectionOfAllFields)
             {
                 var group = new ListViewGroup
-                                {
-                                    Header = field.CategoryName,
-                                    Name = field.CategoryName,
-                                    HeaderAlignment = HorizontalAlignment.Left
-                                };
+                {
+                    Header = field.CategoryName,
+                    Name = field.CategoryName,
+                    HeaderAlignment = HorizontalAlignment.Left
+                };
                 if (field.CategoryName != indicator)
                 {
                     indicator = field.CategoryName;
@@ -140,19 +144,24 @@ namespace NonStandartQuery
             dgvConditions.CellValueChanged += DgvConditionsCellValueChanged;
             dgvConditions.RowEnter += DgvConditionsRowEnter;
             dgvConditions.DataError += DgvConditionsDataError;
-            //// TODO: Не отображаются условия
+            foreach (var field in mainCollectionOfAllFields)
+            {
+                collectionOfFieldsToConditions.Add(field.DisplayedName + "/" + field.CategoryName);
+            }
+
             dgvConditions.Columns.Add(
                 new DataGridViewComboBoxColumn
                     {
-                        DataPropertyName = "DisplayedName",
-                        DataSource = mainCollectionOfAllFields,
+                        DataSource = collectionOfFieldsToConditions,
                         Name = @"Field",
                         HeaderText = @"Поле"
                     });
             dgvConditions.Columns.Add(
                 new DataGridViewComboBoxColumn
                     {
-                        DataPropertyName = "Criterion", HeaderText = @"Критерий", Name = @"Criterion"
+                        DataPropertyName = "Criterion",
+                        HeaderText = @"Критерий",
+                        Name = @"Criterion"
                     });
             dgvConditions.Columns.Add(
                 new DataGridViewTextBoxColumn
@@ -166,8 +175,10 @@ namespace NonStandartQuery
             dgvConditions.Columns.Add(
                 new DataGridViewComboBoxColumn
                     {
-                        DataSource = new[] { "И", "ИЛИ" }, HeaderText = @"Связка", Name = "Bunch"
+                        HeaderText = @"Связка",
+                        Name = "Bunch"
                     });
+            ((DataGridViewComboBoxColumn)dgvConditions.Columns["bunch"]).Items.AddRange("И", "ИЛИ");
             dgvConditions.Dock = DockStyle.Fill;
         }
 
@@ -192,6 +203,7 @@ namespace NonStandartQuery
             dgvResult.AllowUserToAddRows = false;
             dgvResult.AllowUserToDeleteRows = false;
             dgvResult.AllowUserToOrderColumns = false;
+            dgvResult.RowHeadersVisible = false; 
         }
 
         #endregion
@@ -260,8 +272,10 @@ namespace NonStandartQuery
                         (string)reader["Category_name"]));
             }
 
-            collectionOfAllFields = mainCollectionOfAllFields;
-            UpdateCollectionsAllowedToSort();
+            var fields = new Field[mainCollectionOfAllFields.Count];
+            mainCollectionOfAllFields.CopyTo(fields);
+            collectionOfAllFields = fields.ToList();
+            UpdateFieldsCollectionsAllowedToSort();
 
             reader.Close();
             sqlConnection.Close();
@@ -285,6 +299,8 @@ namespace NonStandartQuery
             collectionOfNonAdjacentTables.Clear();
             collectionOfSelectedFields.Clear();
             collectionOfSelectedFieldsToSort.Clear();
+            collectionOfSqlParameters.Clear();
+            collectionOfFieldsToConditions.Clear();
             IntializeContent();
             currentSqlQuerySelectPart = string.Empty;
             currentSqlQueryFromPart = string.Empty;
@@ -292,14 +308,14 @@ namespace NonStandartQuery
             currentSqlQueryOrderPart = string.Empty;
         }
 
-        private void UpdateCollectionsAllowedToSort()
+        private void UpdateFieldsCollectionsAllowedToSort()
         {
             lvAllFieldsToSort.Items.Clear();
             collectionOfAllFieldsToSort =
                 new List<Field>(collectionOfSelectedFields.Except(collectionOfSelectedFieldsToSort));
             foreach (var field in collectionOfAllFieldsToSort)
             {
-                var item = new ListViewItem { Name = field.Name, Tag = field, Text = field.DisplayedName };           
+                var item = new ListViewItem { Name = field.DisplayedName, Tag = field, Text = field.DisplayedName };
                 lvAllFieldsToSort.Groups[field.CategoryName].Items.Add(item);
                 lvAllFieldsToSort.Items.Add(item);
             }
@@ -376,20 +392,32 @@ namespace NonStandartQuery
         #endregion
 
         #region Обработка событий dgvConditions
-        //// TODO: Протестировать добавление условий
+
         private void DgvConditionsRowValidating(object sender, DataGridViewCellCancelEventArgs e)
         {
-            if (dgvConditions.IsCurrentRowDirty)
+            if (!dgvConditions.IsCurrentRowDirty)
             {
                 return;
             }
 
             // Считывание данных из dgv
             var row = dgvConditions.CurrentRow;
+            var filedName = (string)row.Cells["Field"].Value;
+            var obj = filedName != null ? filedName.Split('/') : new[] { string.Empty, string.Empty};
+
             var field = mainCollectionOfAllFields.FirstOrDefault(
-                t => t.DisplayedName == (string)row.Cells["Field"].Value);
+                    t => t.DisplayedName == obj[0] && t.CategoryName == obj[1]);
             var criterion = (string)row.Cells["Criterion"].Value;
-            var expression = (string)row.Cells["Expression"].Value;
+            object expression;
+            try
+            {
+                expression = row.Cells["Expression"].Value.ToString();
+            }
+            catch (Exception)
+            {
+                expression = (string)row.Cells["Expression"].Value;
+            }
+
             var bunch = (string)row.Cells["Bunch"].Value;
 
             var errorFlag = false;
@@ -406,10 +434,65 @@ namespace NonStandartQuery
                 row.Cells["Criterion"].ErrorText = "Выберите критерий";
             }
 
-            if (!errorFlag && new SqlType(field.Type).GetCSharpType() != typeof(string))
+            if (!errorFlag && new SqlType(field.Type).GetCSharpType() != typeof(string) && expression == null)
             {
                 errorFlag = true;
                 row.Cells["Criterion"].ErrorText = "Введите значение выражения";
+            }
+
+            // Проверка числовых значений выражений
+            if (expression != null && field != null)
+            {
+                var type = new SqlType(field.Type).GetCSharpType();
+                if (type == typeof(int) || type == typeof(short) || type == typeof(long))
+                {
+                    try
+                    {
+                        // ReSharper disable once UnusedVariable
+                        var temp = long.Parse(expression.ToString());
+                        row.Cells["Expression"].ErrorText = string.Empty;
+                    }
+                    catch (InvalidCastException)
+                    {
+                        errorFlag = true;
+                        row.Cells["Expression"].ErrorText = "Данное поле может содержать только целочисленное значение";
+                    }
+                    catch (FormatException)
+                    {
+                        errorFlag = true;
+                        row.Cells["Expression"].ErrorText = "Данное поле может содержать только целочисленное значение";
+                    }
+                    catch (OverflowException)
+                    {
+                        errorFlag = true;
+                        row.Cells["Expression"].ErrorText = "Некорректное значение";
+                    }
+                }
+
+                if (type == typeof(double) || type == typeof(float))
+                {
+                    try
+                    {
+                        // ReSharper disable once UnusedVariable
+                        var temp = double.Parse(expression.ToString());
+                        row.Cells["Expression"].ErrorText = string.Empty;
+                    }
+                    catch (InvalidCastException)
+                    {
+                        errorFlag = true;
+                        row.Cells["Expression"].ErrorText = "Данное поле может содержать только числовое значение";
+                    }
+                    catch (FormatException)
+                    {
+                        errorFlag = true;
+                        row.Cells["Expression"].ErrorText = "Данное поле может содержать только числовое значение";
+                    }
+                    catch (OverflowException)
+                    {
+                        errorFlag = true;
+                        row.Cells["Expression"].ErrorText = "Некорректное значение";
+                    }
+                }
             }
 
             if (bunch == null)
@@ -424,13 +507,29 @@ namespace NonStandartQuery
             }
 
             // Выбор корректной связки
-            bunch = bunch == "И" ? "AND" : "OR";
+            bunch = bunch == "И" ? @"AND" : @"OR";
 
-            // Добавление нового условия в коллекцию
             var condition = new Condition(field, new Criterion(criterion), expression, bunch);
             if (!collectionOfConditions.Contains(condition))
             {
-                collectionOfConditions.Add(condition);
+                if (row.Tag == null)
+                {
+                    // Добавление нового условия в коллекцию
+                    collectionOfConditions.Add(condition);
+                }
+                else
+                {
+                    // Обновление условия
+                    var updatedConditionIndex = collectionOfConditions.FindIndex(t => t == (Condition)row.Tag);
+                    collectionOfConditions[updatedConditionIndex] = condition;                   
+                }
+
+                row.Tag = condition;
+            }
+            else
+            {
+                MessageBox.Show(@"Такое условие уже существует!");
+                e.Cancel = true;
             }
 
             // Обновление текста запроса
@@ -450,45 +549,51 @@ namespace NonStandartQuery
                 return;
             }
 
-            var row = dgvConditions.CurrentRow;
-            var field = (string)row.Cells["Field"].Value;
-            var criterion = (string)row.Cells["Criterion"].Value;
-            var expression = (string)row.Cells["Expression"].Value;
-            var bunch = (string)row.Cells["Bunch"].Value;
+            foreach (DataGridViewRow row in ((DataGridView)sender).SelectedRows)
+            {
+                if (row.Tag != null)
+                {
+                    collectionOfConditions.Remove((Condition)row.Tag);
+                }
+            }
 
-            // Удаление условия из коллекции
-            var condition = new Condition(
-                mainCollectionOfAllFields.Find(t => t.DisplayedName == field),
-                new Criterion(criterion),
-                expression,
-                bunch);
-            collectionOfConditions.Remove(condition);
+            UpdateSqlQueryFromWherePart();
         }
 
         private void DgvConditionsCellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             var row = dgvConditions.Rows[e.RowIndex];
-            if (!row.IsNewRow)
+            if (row.IsNewRow)
             {
                 dgvConditions[e.ColumnIndex, e.RowIndex].ErrorText = "Значение изменено и не сохранено";
             }
 
-            if (!row.Cells["Field"].Selected || row.Selected || row.Cells["Field"].Value == null)
+            if (e.ColumnIndex != 0 || !row.Cells["Field"].Selected || row.Selected || row.Cells["Field"].Value == null)
             {
                 return;
             }
 
-            // TODO: Сделать ячейки дат видимыми
             row.Cells["Expression"].ReadOnly = false;
-            var field = mainCollectionOfAllFields.Find(t => t.DisplayedName == (string)row.Cells["Field"].Value);
+            var fields = (string)row.Cells["Field"].Value;
+            var obj = fields.Split('/');
+            var field = mainCollectionOfAllFields.Find(t => t.DisplayedName == obj[0] && t.CategoryName == obj[1]);
+            if ((Field)row.Cells["Expression"].Tag == field)
+            {
+                return;
+            }
+
             row.Cells["Expression"] = ChooseRightCellType(field);
-            dgvConditions.Columns["Expression"].Visible = true;
+            if (row.Cells["Expression"] is CalendarCell)
+            {
+                row.Cells["Expression"].Value = DateTime.Now.Date;
+            }
+
+            row.Cells["Expression"].Tag = field;
             ((DataGridViewComboBoxCell)row.Cells["Criterion"]).DataSource = Criterion.GetAllowedOperations(field);
         }
 
         private void DgvConditionsRowEnter(object sender, DataGridViewCellEventArgs e)
         {
-            // TODO: Добавить проверку остальных строк
             if (dgvConditions.Rows[e.RowIndex].Cells["Field"].Value == null)
             {
                 dgvConditions.Rows[e.RowIndex].Cells["Expression"].ErrorText =
@@ -498,7 +603,7 @@ namespace NonStandartQuery
 
         private void DgvConditionsDataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            //ignore
+            e.Cancel = false;
         }
 
         #endregion
@@ -507,7 +612,18 @@ namespace NonStandartQuery
 
         private void BtChangeConnectionClick(object sender, EventArgs e) => ChangeConnection();
 
-        private void BtShowSqlQueryClick(object sender, EventArgs e) => MessageBox.Show(CurrentSqlQuery());
+        private void BtShowSqlQueryClick(object sender, EventArgs e)
+        {
+            var adaptedSqlQuery = CurrentSqlQuery();
+            foreach (var parameter in collectionOfSqlParameters)
+            {
+                adaptedSqlQuery = parameter.Value is DateTime
+                                      ? adaptedSqlQuery.Replace(parameter.ParameterName, "{" + parameter.Value + "}")
+                                      : adaptedSqlQuery.Replace(parameter.ParameterName, "\'" + parameter.Value + "\'");
+            }
+      
+            MessageBox.Show(adaptedSqlQuery);
+        }
 
         private void BtExecuteClick(object sender, EventArgs e)
         {
@@ -516,15 +632,17 @@ namespace NonStandartQuery
             dgvResult.AllowUserToResizeColumns = true;
             dgvResult.Columns.Clear();
             dgvResult.Rows.Clear();
-            
             try
             {
                 сurrentSqlCommand.Connection = sqlConnection;
                 сurrentSqlCommand.CommandText = CurrentSqlQuery();
+                сurrentSqlCommand.Parameters.Clear();
+                сurrentSqlCommand.Parameters.AddRange(collectionOfSqlParameters.ToArray());
                 var reader = сurrentSqlCommand.ExecuteReader();
-                FillingResults(reader);
+                FillResult(reader);
                 MessageBox.Show(@"Запрос выполнен");
                 sqlConnection.Close();
+                dgvResult.AutoResizeColumns();
             }
             catch (InvalidOperationException)
             {
@@ -533,11 +651,17 @@ namespace NonStandartQuery
             }
         }
 
-        private void FillingResults(IDataReader reader)
+        private void FillResult(IDataReader reader)
         {
             foreach (var field in collectionOfSelectedFields)
             {
-                dgvResult.Columns.Add(field.GetFullName(), field.DisplayedName);
+                dgvResult.Columns.Add(
+                    new DataGridViewColumn
+                        {
+                            Name = field.GetFullName(),
+                            HeaderText = field.DisplayedName,
+                            ReadOnly = true
+                        });
             }
 
             while (reader.Read())
@@ -608,46 +732,66 @@ namespace NonStandartQuery
             // Добавление таблиц, содержащие поля, выбранные для вывода, в запрос (блок FROM)
             currentSqlQueryFromPart = "\nFROM " + string.Join(", ", tablesList);
 
+            if (collectionOfConditions.Count == 0 && joinList == null)
+            {
+                return;
+            }
+            
+            currentSqlQueryWherePart = "\nWHERE ";
             if (joinList != null)
             {
                 // Добавление связей между таблицами (блок WHERE)
-                currentSqlQueryWherePart = "\nWHERE " + string.Join(" AND ", joinList);
+                currentSqlQueryWherePart += string.Join(" AND ", joinList);
             }
 
+            collectionOfSqlParameters.Clear();
+
             // Добавление условий в запрос
-            for (var i = 0; i < collectionOfConditions.Count; i++)
+            var lastIndex = collectionOfConditions.Count - 1;
+            currentSqlQueryWherePart += joinList != null && lastIndex != -1 ? " AND ( " : string.Empty;
+            for (var i = 0; i <= lastIndex; i++)
             {
                 var condition = collectionOfConditions[i];
                 var expression = condition.Expression;
-                string expressionString;
+                var parameterName = @"@Parameter" + i;
+                var expressionString = new SqlParameter(parameterName, expression.GetType());
                 switch (expression)
                 {
                     case DateTime _:
-                        expressionString = "{" + expression + "}";
+                        expressionString.Value = ((DateTime)expression).Date;
                         break;
                     case bool _:
-                        expressionString = "\'" + expression + "\'";
+                        expressionString.Value = (bool)expression;
                         break;
                     default:
-                        expressionString = "\'" + expression + "\'";
+                        expressionString.Value = expression;
                         break;
                 }
 
-                var sqlTranslating = i != Top
-                                         ? condition.Field.GetFullName() + " " + condition.Criterion.GetValue() + " "
-                                           + expressionString + " " + condition.Bunch + "\n"
-                                         : condition.Field.GetFullName() + " " + condition.Criterion.GetValue() + " "
-                                           + expressionString + "\n";
+                var sqlTranslating = i != lastIndex
+                                            ? condition.Field.GetFullName() + " " + condition.Criterion.GetValue() + " "
+                                            + parameterName + " " + condition.Bunch + " "
+                                            : condition.Field.GetFullName() + " " + condition.Criterion.GetValue() + " "
+                                            + parameterName + " ";
                 currentSqlQueryWherePart += sqlTranslating;
+                collectionOfSqlParameters.Add(expressionString);
             }
+
+            currentSqlQueryWherePart += joinList != null && lastIndex != -1 ? ")" : string.Empty;            
         }
 
         private void UpdateSqlQueryOrderPart()
         {
             try
             {
-                if (!collectionOfSelectedFieldsToSort.Any())
+                if (!collectionOfSelectedFieldsToSort.Any() || !collectionOfSelectedFields.Any())
                 {
+                    if (!collectionOfAllFieldsToSort.Any())
+                    {
+                        collectionOfAllFieldsToSort.Clear();
+                        lvSelectedFieldsToSort.Items.Clear();
+                    }
+
                     currentSqlQueryOrderPart = string.Empty;
                     return;
                 }
@@ -660,9 +804,24 @@ namespace NonStandartQuery
 
             currentSqlQueryOrderPart = "\nORDER BY ";
             collectionOfSelectedFieldsToSort.Sort(new OrderFieldComparer());
+            var fields = new List<OrderedField>();
             foreach (var orderedField in collectionOfSelectedFieldsToSort)
             {
+                var field = collectionOfSelectedFields.FirstOrDefault(
+                    t => t.GetFullName() == orderedField.GetFullName());
+                if (field == null)
+                {
+                    var deleted = lvSelectedFieldsToSort.FindItemWithText(orderedField.DisplayedName);
+                    fields.Add(orderedField);
+                    lvSelectedFieldsToSort.Items.Remove(deleted);
+                }
+
                 currentSqlQueryOrderPart += orderedField.GetFullName() + " " + orderedField.Order + ", ";
+            }
+
+            foreach (var field in fields)
+            {
+                collectionOfSelectedFieldsToSort.Remove(field);
             }
 
             currentSqlQueryOrderPart = currentSqlQueryOrderPart.Remove(currentSqlQueryOrderPart.Length - 2, 2);
@@ -707,7 +866,7 @@ namespace NonStandartQuery
                 targetListView.Items.Add(item);
             }
 
-                UpdateSqlQuery();
+            UpdateSqlQuery();
         }
 
         private void BtAddClick(object sender, EventArgs e)
@@ -718,18 +877,41 @@ namespace NonStandartQuery
                 ref lvSelectedFields,
                 ref collectionOfSelectedFields);
 
-            UpdateCollectionsAllowedToSort();
+            UpdateFieldsCollectionsAllowedToSort();
+            UpdateSqlQuery();
         }
 
         private void BtDeleteClick(object sender, EventArgs e)
         {
+            foreach (ListViewItem item in lvSelectedFields.SelectedItems)
+            {
+                var orderedFieldFromAll =
+                    collectionOfAllFieldsToSort.FirstOrDefault(t => t.GetFullName() == ((Field)item.Tag).GetFullName());
+                if (orderedFieldFromAll != null)
+                {
+                    collectionOfAllFieldsToSort.Remove(orderedFieldFromAll);
+                    lvAllFieldsToSort.Items.Remove(item);
+                }
+
+                var orderedFieldFromSelected =
+                    collectionOfSelectedFieldsToSort.FirstOrDefault(t => t.GetFullName() == ((Field)item.Tag).GetFullName());
+                if (orderedFieldFromSelected == null)
+                {
+                    continue;
+                }
+
+                collectionOfSelectedFieldsToSort.Remove(orderedFieldFromSelected);
+                lvSelectedFieldsToSort.Items.RemoveByKey(item.Text + " (" + orderedFieldFromSelected.CategoryName + ")");
+            }
+
             TransferringSelectedFieldsBetweenListView(
                 ref lvSelectedFields,
                 ref collectionOfSelectedFields,
                 ref lvAllFields,
                 ref collectionOfAllFields);
 
-            UpdateCollectionsAllowedToSort();
+            UpdateFieldsCollectionsAllowedToSort();
+            UpdateSqlQuery();
         }
 
         private void BtAddAllClick(object sender, EventArgs e)
@@ -740,18 +922,40 @@ namespace NonStandartQuery
                 ref lvSelectedFields,
                 ref collectionOfSelectedFields);
 
-            UpdateCollectionsAllowedToSort();
+            UpdateFieldsCollectionsAllowedToSort();
+            UpdateSqlQuery();
         }
 
         private void BtDeleteAllClick(object sender, EventArgs e)
         {
+            foreach (ListViewItem item in lvSelectedFields.Items)
+            {
+                var orderedFieldFromAll =
+                    collectionOfAllFieldsToSort.FirstOrDefault(t => t.GetFullName() == ((Field)item.Tag).GetFullName());
+                if (orderedFieldFromAll != null)
+                {
+                    collectionOfAllFieldsToSort.Remove(orderedFieldFromAll);
+                    lvAllFieldsToSort.Items.Remove(item);
+                }
+
+                var orderedFieldFromSelected =
+                    collectionOfSelectedFieldsToSort.FirstOrDefault(t => t.GetFullName() == ((Field)item.Tag).GetFullName());
+                if (orderedFieldFromSelected == null)
+                {
+                    continue;
+                }
+
+                collectionOfSelectedFieldsToSort.Remove(orderedFieldFromSelected);
+                lvSelectedFieldsToSort.Items.RemoveByKey(item.Text + " (" + orderedFieldFromSelected.CategoryName + ")");
+            }
             TransferringFieldsBetweenListView(
                 ref lvSelectedFields,
                 ref collectionOfSelectedFields,
                 ref lvAllFields,
                 ref collectionOfAllFields);
 
-            UpdateCollectionsAllowedToSort();
+            UpdateFieldsCollectionsAllowedToSort();
+            UpdateSqlQuery();
         }
 
         #endregion
@@ -767,14 +971,14 @@ namespace NonStandartQuery
                 collectionOfAllFieldsToSort.Remove(field);
                 lvAllFieldsToSort.Items.Remove(item);
                 var newItem =
-                    new ListViewItem(new[] { item.Text, "По возрастанию" }) { Tag = new OrderedField(field, "ASC", lvSelectedFieldsToSort.Items.Count) };
+                    new ListViewItem(new[] { item.Text + " (" + field.CategoryName + ")", "По возрастанию" }) { Tag = new OrderedField(field, "ASC", lvSelectedFieldsToSort.Items.Count) };
                 lvSelectedFieldsToSort.Items.Add(newItem);
                 lvSelectedFieldsToSort.Groups[field.CategoryName].Items.Add(newItem);
                 collectionOfSelectedFieldsToSort.Add(
                     new OrderedField(field, "ASC", newItem.Index));
             }
 
-            UpdateCollectionsAllowedToSort();
+            UpdateFieldsCollectionsAllowedToSort();
             UpdateSqlQueryOrderPart();
         }
 
@@ -791,7 +995,7 @@ namespace NonStandartQuery
                 lvAllFieldsToSort.Items.Add(newItem);
             }
 
-            UpdateCollectionsAllowedToSort();
+            UpdateFieldsCollectionsAllowedToSort();
             UpdateSqlQueryOrderPart();
         }
 
@@ -803,15 +1007,17 @@ namespace NonStandartQuery
                 var field = collectionOfAllFieldsToSort.Find(t => t == (Field)item.Tag);
                 collectionOfAllFieldsToSort.Remove(field);
                 lvAllFieldsToSort.Items.Remove(item);
-                var newItem =
-                    new ListViewItem(new[] { item.Text, "По возрастанию" }) { Tag = new OrderedField(field, "ASC", lvSelectedFieldsToSort.Items.Count) };
+                var newItem = new ListViewItem(new[] { item.Text + " (" + field.CategoryName + ")", "По возрастанию" })
+                                  {
+                                      Tag = new OrderedField(field, "ASC", lvSelectedFieldsToSort.Items.Count)
+                                  };
                 lvSelectedFieldsToSort.Items.Add(newItem);
                 lvSelectedFieldsToSort.Groups[field.CategoryName].Items.Add(newItem);
                 collectionOfSelectedFieldsToSort.Add(
                     new OrderedField(field, "ASC", newItem.Index));
             }
 
-            UpdateCollectionsAllowedToSort();
+            UpdateFieldsCollectionsAllowedToSort();
             UpdateSqlQueryOrderPart();
         }
 
@@ -828,7 +1034,7 @@ namespace NonStandartQuery
                 lvAllFieldsToSort.Items.Add(newItem);
             }
 
-            UpdateCollectionsAllowedToSort();
+            UpdateFieldsCollectionsAllowedToSort();
             UpdateSqlQueryOrderPart();
         }
 
@@ -954,6 +1160,16 @@ namespace NonStandartQuery
 
         #endregion
 
+        #region Переключение вкладок
+
+        private void TcNonStandartQuerySelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateFieldsCollectionsAllowedToSort();
+            UpdateSqlQuery();
+        }
+
+        #endregion
+
         #region Генерация связей между таблицами
 
         private void GetJoinConditions(
@@ -1023,7 +1239,6 @@ namespace NonStandartQuery
                                         : CreatePath(Tuple.Create(tuple.Item2, intermedianteTable), tuple.Item1)
                                             .Split('\"');
 
-                                // TODO: Ошибка при добавлении факультетов
                                 // Добавление построенного пути в коллекцию отношений
                                 for (var j = 0; j < path.Length - 1; j++)
                                 {

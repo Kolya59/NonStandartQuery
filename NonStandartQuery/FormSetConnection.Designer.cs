@@ -37,6 +37,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.tbServer = new System.Windows.Forms.TextBox();
+            this.btChangeServer = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // cbDataBase
@@ -46,7 +47,6 @@
             this.cbDataBase.Name = "cbDataBase";
             this.cbDataBase.Size = new System.Drawing.Size(265, 21);
             this.cbDataBase.TabIndex = 0;
-            this.cbDataBase.SelectedIndexChanged += CbDataBaseSelectedIndexChanged;
             // 
             // btOk
             // 
@@ -56,7 +56,6 @@
             this.btOk.TabIndex = 1;
             this.btOk.Text = "OK";
             this.btOk.UseVisualStyleBackColor = true;
-            this.btOk.Click += BtOkClick;
             // 
             // btCancel
             // 
@@ -90,15 +89,26 @@
             // 
             this.tbServer.Location = new System.Drawing.Point(9, 29);
             this.tbServer.Name = "tbServer";
+            this.tbServer.ReadOnly = true;
             this.tbServer.Size = new System.Drawing.Size(265, 20);
             this.tbServer.TabIndex = 7;
-            this.tbServer.TextChanged += TbServerTextChanged;
+            // 
+            // btChangeServer
+            // 
+            this.btChangeServer.Location = new System.Drawing.Point(91, 104);
+            this.btChangeServer.Name = "btChangeServer";
+            this.btChangeServer.Size = new System.Drawing.Size(102, 23);
+            this.btChangeServer.TabIndex = 8;
+            this.btChangeServer.Text = "Смена сервера";
+            this.btChangeServer.UseVisualStyleBackColor = true;
+            this.btChangeServer.Click += new System.EventHandler(this.BtChangeServerClick);
             // 
             // FormSetConnection
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 135);
+            this.Controls.Add(this.btChangeServer);
             this.Controls.Add(this.tbServer);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.label3);
@@ -109,6 +119,7 @@
             this.Text = "Настройка соединения";
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
 
         #endregion
@@ -119,5 +130,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox tbServer;
+        private System.Windows.Forms.Button btChangeServer;
     }
 }
