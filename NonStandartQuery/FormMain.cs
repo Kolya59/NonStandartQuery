@@ -446,7 +446,7 @@ namespace NonStandartQuery
             if (!errorFlag && new SqlType(field.Type).GetCSharpType() != typeof(string) && expression == null)
             {
                 errorFlag = true;
-                row.Cells["Criterion"].ErrorText = "Введите значение выражения";
+                row.Cells["Expression"].ErrorText = "Введите значение выражения";
             }
 
             // Проверка числовых значений выражений
@@ -459,6 +459,7 @@ namespace NonStandartQuery
                     {
                         // ReSharper disable once UnusedVariable
                         var temp = long.Parse(expression.ToString());
+                        expression = temp;
                         row.Cells["Expression"].ErrorText = string.Empty;
                     }
                     catch (InvalidCastException)
@@ -484,6 +485,7 @@ namespace NonStandartQuery
                     {
                         // ReSharper disable once UnusedVariable
                         var temp = double.Parse(expression.ToString());
+                        expression = temp;
                         row.Cells["Expression"].ErrorText = string.Empty;
                     }
                     catch (InvalidCastException)
@@ -555,7 +557,13 @@ namespace NonStandartQuery
         {
             if (e.Row.IsNewRow)
             {
-                e.Cancel = true;
+                var emptyFlag = false;
+                foreach (DataGridViewCell cell in e.Row.Cells)
+                {
+                    emptyFlag |= cell.Value != null;
+                }
+
+                e.Cancel = emptyFlag;
                 return;
             }
 
@@ -771,18 +779,26 @@ namespace NonStandartQuery
                 var condition = collectionOfConditions[i];
                 var expression = condition.Expression;
                 var parameterName = @"@Parameter" + i;
-                var expressionString = new SqlParameter(parameterName, expression.GetType());
-                switch (expression)
+                SqlParameter expressionString;
+                try
                 {
-                    case DateTime _:
-                        expressionString.Value = ((DateTime)expression).Date;
-                        break;
-                    case bool _:
-                        expressionString.Value = (bool)expression;
-                        break;
-                    default:
-                        expressionString.Value = expression;
-                        break;
+                    expressionString = new SqlParameter(parameterName, expression.GetType());
+                    switch (expression)
+                    {
+                        case DateTime _:
+                            expressionString.Value = ((DateTime)expression).Date;
+                            break;
+                        case bool _:
+                            expressionString.Value = (bool)expression;
+                            break;
+                        default:
+                            expressionString.Value = expression;
+                            break;
+                    }
+                }
+                catch (Exception)
+                {
+                    expressionString = new SqlParameter(parameterName, SqlDbType.NVarChar) { Value = string.Empty };
                 }
 
                 var sqlTranslating = i != lastIndex
